@@ -1,0 +1,222 @@
+
+<h2 class="sr-only">FSA-registered Japanese cryptocurrency exchanges — interactive asset coverage explorer (as of February 2026)</h2>
+
+<style>
+#fsa{font-size:14px;}
+.tb{padding:5px 13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;cursor:pointer;font-size:13px;color:var(--color-text-secondary);}
+.tb.on{background:var(--color-background-secondary);color:var(--color-text-primary);font-weight:500;}
+.tb:hover{background:var(--color-background-secondary);}
+.ex-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:5px;overflow:hidden;}
+.ex-hdr{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;background:var(--color-background-primary);}
+.ex-hdr:hover{background:var(--color-background-secondary);}
+.ex-body{padding:8px 12px 10px;background:var(--color-background-secondary);border-top:0.5px solid var(--color-border-tertiary);}
+.tk{display:inline-block;font-size:11px;font-family:var(--font-mono);padding:2px 6px;border-radius:4px;margin:2px;cursor:pointer;background:var(--color-background-info);color:var(--color-text-info);}
+.tk:hover{opacity:.75;}
+.badge{font-size:12px;font-weight:500;padding:2px 8px;border-radius:var(--border-radius-md);}
+.amber{background:#FAEEDA;color:#633806;}
+.purple{background:#EEEDFE;color:#3C3489;}
+.cr-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer;}
+.cr-row:hover{background:var(--color-background-secondary);}
+.cr-row.open{background:var(--color-background-secondary);}
+.cr-sub{padding:4px 12px 10px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;flex-wrap:wrap;gap:4px;}
+.cr-name{font-size:11px;padding:3px 9px;border-radius:var(--border-radius-md);background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);color:var(--color-text-primary);}
+.mx-wrap{overflow-x:auto;padding-bottom:4px;}
+.mx-hdr-cell{width:18px;vertical-align:bottom;padding:0 2px;}
+.mx-hdr-lbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px;font-family:var(--font-mono);height:60px;display:flex;align-items:flex-start;justify-content:flex-end;color:var(--color-text-secondary);padding-bottom:3px;}
+.mx-dot{width:14px;height:14px;border-radius:2px;margin:auto;}
+.dot-on{background:#1D9E75;}
+.dot-off{background:var(--color-background-secondary);}
+.mx-ex{font-size:11px;font-family:var(--font-sans);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;color:var(--color-text-secondary);}
+.sort-btn{font-size:12px;color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:2px 6px;}
+.sort-btn.on{color:var(--color-text-primary);font-weight:500;}
+</style>
+
+<div id="fsa" style="padding-top:1rem;">
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:1rem;">
+    <div style="display:flex;gap:4px;" id="tabs">
+      <button class="tb on" id="btn-ex" onclick="setTab('ex')">By exchange</button>
+      <button class="tb" id="btn-cr" onclick="setTab('cr')">By crypto</button>
+      <button class="tb" id="btn-mx" onclick="setTab('mx')">Matrix</button>
+      <span id="braille-mini" style="font-size:13px;line-height:1;"></span>
+    </div>
+    <input type="text" id="fsq" placeholder="Search…" oninput="renderView()" style="flex:1;min-width:100px;max-width:220px;">
+    <span id="fsa-meta" style="font-size:12px;color:var(--color-text-secondary);margin-left:auto;"></span>
+  </div>
+  <div id="sort-row" style="display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+    <span style="font-size:12px;color:var(--color-text-secondary);">Sort:</span>
+    <button class="sort-btn on" id="srt-count" onclick="setSort('count')">most listings</button>
+    <button class="sort-btn" id="srt-name" onclick="setSort('name')">name</button>
+  </div>
+  <div id="view-ex"></div>
+  <div id="view-cr" style="display:none;"></div>
+  <div id="view-mx" style="display:none;"></div>
+</div>
+
+<script>
+const EX=[
+ {id:1,name:'マネーパートナーズ',reg:'関東 00001',region:'関東',cryptos:['BTC']},
+ {id:2,name:'Custodiem',reg:'関東 00002',region:'関東',cryptos:['BTC','ETH','BCH','XRP','BAT','LTC','FTT','SOL','DOT','ENJ','OMG','DOGE','AVAX','MKR']},
+ {id:3,name:'bitFlyer',reg:'関東 00003',region:'関東',cryptos:['BTC','ETH','ETC','LTC','BCH','MONA','LSK','XRP','BAT','XEM','XLM','XTZ','DOT','LINK','XYM','MATIC','MKR','ZPG','FLR','SHIB','PLT','SAND','AXS','MANA','IMX','APE','CHZ','DAI','RNDR','GRT','AVAX','DOGE','ELF','ZPGPT','ZPGAG','MASK','POL','PEPE','SKY']},
+ {id:4,name:'ビットバンク',reg:'関東 00004',region:'関東',cryptos:['BTC','ETH','XRP','LTC','MONA','BCH','XLM','QTUM','BAT','OMG','XYM','LINK','BOBA','ENJ','POL','DOT','DOGE','ADA','ASTR','AVAX','AXS','SAND','FLR','GALA','CHZ','APE','OAS','MANA','GRT','RENDER','BNB','DAI','OP','ARB','KLAY','IMX','MASK','SOL','CYBER','TRX','LPT','ATOM','SUI','SKY']},
+ {id:5,name:'GMOコイン',reg:'関東 00006',region:'関東',cryptos:['BTC','ETH','BCH','LTC','XRP','XLM','XTZ','DOT','ATOM','ADA','DAI','LINK','FCR','DOGE','SOL','FLR','ASTR','FIL','SAND','CHZ','NAC','AVAX','SUI']},
+ {id:6,name:'ビットトレード',reg:'関東 00007',region:'関東',cryptos:['BTC','ETH','XRP','LTC','BCH','XLM','ETC','BAT','ONT','QTUM','TRX','XYM','ADA','DOT','IOST','BSV','JMY','COT','XTZ','DEP','FLR','ASTR','BOBA','ATOM','A','DOGE','SHIB','MATIC','AXS','DAI','SAND','SXP','SOL','APT','TON','BNB','SUI','JOC','ZPG','UPC','WBTC','PEPE','ARB','OP','CRTS','SKY','LINK','TRUMP']},
+ {id:7,name:'BTCボックス',reg:'関東 00008',region:'関東',cryptos:['BTC','BCH','ETH','LTC','DOT','DOGE','TRX']},
+ {id:8,name:'ビットポイント',reg:'関東 00009',region:'関東',cryptos:['BTC','ETH','XRP','LTC','BCH','BAT','TRX','ADA','JMY','DOT','LINK','DEP','IOST','KAIA','SHIB','POL','FLR','ATOM','TON','OSHI','SOL','DOGE','AVAX','SUI','PEPE','BNB','HBAR','TRUMP','XLM']},
+ {id:9,name:'SBI VCトレード',reg:'関東 00011',region:'関東',cryptos:['BTC','ETH','XRP','BCH','LTC','DOT','LINK','ADA','DOGE','SOL','XLM','XTZ','MATIC','AVAX','FLR','OAS','XDC','SHIB','DAI','ATOM','APT','ZPG','HBAR','NEAR','NIDT','ALGO','APE','AXS','BAT','CHZ','ETC','MKR','OMG','SAND','TRX']},
+ {id:10,name:'FINX JCrypto',reg:'関東 00012',region:'関東',cryptos:['BTC','ETH','XRP','XLM','BCH','DAI','DOT','LTC','SHIB','OAS','ADA','AVAX','BNB','DOGE','PEPE','POL','SOL','TRX']},
+ {id:11,name:'COINHUB',reg:'関東 00013',region:'関東',cryptos:['BTC']},
+ {id:12,name:'コインチェック',reg:'関東 00014',region:'関東',cryptos:['BTC','ETH','ETC','LSK','XRP','XEM','LTC','BCH','MONA','XLM','IOST','XYM','SAND','DOT','FLR','FNCT','CHZ','LINK','DAI','MATIC','APE','AXS','IMX','WBTC','AVAX','SHIB','BRIL','BC','DOGE','PEPE','MASK','MANA','GRT','FPL','SOL','TRX']},
+ {id:13,name:'楽天ウォレット',reg:'関東 00015',region:'関東',cryptos:['BTC','ETH','BCH','POL','SOL','ADA','TRX','AVAX','DOT']},
+ {id:14,name:'S.BLOX',reg:'関東 00016',region:'関東',cryptos:['BTC','ETH','BCH','LTC','XRP','TRX']},
+ {id:15,name:'LINE Xenesis',reg:'関東 00017',region:'関東',cryptos:['BTC','ETH','BCH','LTC','XRP','KAIA','XLM','FLR','DOT']},
+ {id:16,name:'Gate Japan',reg:'関東 00018',region:'関東',cryptos:['RYO']},
+ {id:17,name:'OKCoin Japan',reg:'関東 00020',region:'関東',cryptos:['BTC','BCH','ETH','ETC','LTC','XRP','LSK','OKB','IOST','ENJ','BAT','TRX','QTUM','PLT','AVAX','XLM','ADA','DEP','DOT','ZIL','XTZ','EFI','SAND','SHIB','POL','DAI','FIL','ARB','ASTR','FNCT','OAS','SUI','MASK','KAIA','DOGE','APT','SOL','APE','MKR','OP','NEO','TON','IOTX','PEPE','BNB','SEI','TRUMP','LINK','SKY','MEME']},
+ {id:18,name:'OSL Japan',reg:'関東 00023',region:'関東',cryptos:['BTC','ETH','DAI','ETC','ADA']},
+ {id:19,name:'デジタルアセットマーケッツ',reg:'関東 00024',region:'関東',cryptos:['BTC','ZPG','ZPGAG','ZPGPT']},
+ {id:20,name:'マーキュリー',reg:'関東 00025',region:'関東',cryptos:['BTC','ETH','BCH','XRP','LTC','ADA','IOST','DOT','XTZ','HBAR','AVAX','POL','NEAR','SOL','ZPG','ZPGAG','ZPGPT','ATOM','BNB','TON','ARB','ALGO','OP','SUI','IOTX']},
+ {id:21,name:'BACKSEAT',reg:'関東 00026',region:'関東',cryptos:['BTC','ETH','XRP','ADA','NIDT']},
+ {id:22,name:'東京ハッシュ',reg:'関東 00027',region:'関東',cryptos:['BTC','ETH']},
+ {id:23,name:'Coinbase',reg:'関東 00028',region:'関東',cryptos:[]},
+ {id:24,name:'Crypto Garage',reg:'関東 00029',region:'関東',cryptos:['L-BTC','BTC','ETH','MATIC','DAI','SAND','AVAX','ADA','SOL']},
+ {id:25,name:'メルコイン',reg:'関東 00030',region:'関東',cryptos:['BTC','ETH','XRP']},
+ {id:26,name:'Binance Japan',reg:'関東 00031',region:'関東',cryptos:['BTC','ETH','XRP','BCH','LTC','ETC','ADA','DOT','BNB','BAT','ENJ','IOST','MKR','QTUM','XLM','XTZ','POL','SAND','DAI','ALGO','ASTR','ATOM','AVAX','AXS','CHZ','DOGE','JASMY','LINK','ONT','SHIB','SOL','TRX','ZIL','LSK','APE','RENDER','GALA','MANA','IMX','GRT','HBAR','KAIA','A','OP','ARB','NEAR','SUI','WBTC','FIL','MASK','CYBER','APT','SXP','THETA','NEO','TON','SEI','PEPE','IOTX','NEIRO','LPT','SKY','TRUMP','FET','TAO']},
+ {id:27,name:'Zaif',reg:'近畿 00001',region:'近畿',cryptos:['BTC','MONA','FSCC','NCXC','CICC','BCH','XCP','ZAIF','XEM','ETH','CMS:XEM','CMS:ETH','XYM','COT','TRX','POL','KAIA','SKEB','BORA','SNPT','ZPG','ZPGAG','ZPGPT','JOC']},
+ {id:28,name:'ガイア',reg:'近畿 00004',region:'近畿',cryptos:['BTC','ETH','ADA']},
+];
+
+const cmap={};
+EX.forEach(ex=>ex.cryptos.forEach(c=>{if(!cmap[c])cmap[c]=[];cmap[c].push(ex.id);}));
+const allC=Object.keys(cmap).sort((a,b)=>cmap[b].length-cmap[a].length);
+const top30=allC.slice(0,30);
+
+document.getElementById('fsa-meta').textContent=`28 exchanges · ${allC.length} listed assets · 2026-02-28`;
+
+let tab='ex', expEx=null, expCr=null, sortBy='count';
+
+function setTab(t){
+  tab=t; expEx=null; expCr=null;
+  ['ex','cr','mx'].forEach(x=>{
+    document.getElementById('view-'+x).style.display=x===t?'':'none';
+    document.getElementById('btn-'+x).className='tb'+(x===t?' on':'');
+  });
+  document.getElementById('sort-row').style.display=t==='ex'?'flex':'none';
+  document.getElementById('fsq').placeholder=t==='cr'?'Filter cryptos…':'Search…';
+  renderView();
+}
+
+function setSort(s){
+  sortBy=s;
+  ['count','name'].forEach(x=>document.getElementById('srt-'+x).className='sort-btn'+(x===s?' on':''));
+  renderView();
+}
+
+function q(){return document.getElementById('fsq').value.trim().toLowerCase();}
+function renderView(){if(tab==='ex')renderEx();else if(tab==='cr')renderCr();else renderMx();}
+
+function renderEx(){
+  const sq=q();
+  let list=[...EX].sort((a,b)=>sortBy==='count'?b.cryptos.length-a.cryptos.length:a.name.localeCompare(b.name,'ja'));
+  if(sq) list=list.filter(ex=>ex.name.toLowerCase().includes(sq)||ex.cryptos.some(c=>c.toLowerCase().includes(sq)));
+
+  document.getElementById('view-ex').innerHTML=list.map(ex=>{
+    const open=expEx===ex.id;
+    const prev=ex.cryptos.slice(0,7);
+    const more=ex.cryptos.length-7;
+    return `<div class="ex-card">
+      <div class="ex-hdr" onclick="toggleEx(${ex.id})">
+        <span class="badge purple" style="font-size:11px;padding:2px 6px;">${ex.region}</span>
+        <span style="font-weight:500;flex:1;color:var(--color-text-primary);font-size:13px;">${ex.name}</span>
+        <span style="font-size:11px;color:var(--color-text-secondary);margin-right:8px;">${ex.reg}</span>
+        ${ex.cryptos.length>0?`<span class="badge amber">${ex.cryptos.length}</span>`:`<span style="font-size:12px;color:var(--color-text-secondary)">—</span>`}
+        <span style="font-size:12px;color:var(--color-text-secondary);margin-left:6px;">${open?'▲':'▼'}</span>
+      </div>
+      ${open?`<div class="ex-body"><div style="display:flex;flex-wrap:wrap;">${
+        ex.cryptos.length?ex.cryptos.map(c=>`<span class="tk" onclick="goCrypto('${c}')">${c}</span>`).join(''):
+        '<span style="font-size:13px;color:var(--color-text-secondary)">No listed assets (registered entity only)</span>'
+      }</div></div>`:`<div style="padding:5px 12px 7px;display:flex;flex-wrap:wrap;align-items:center;background:var(--color-background-primary);">${
+        prev.map(c=>`<span class="tk">${c}</span>`).join('')
+      }${more>0?`<span style="font-size:12px;color:var(--color-text-secondary);padding:2px 4px;">+${more} more</span>`:''}${
+        ex.cryptos.length===0?'<span style="font-size:12px;color:var(--color-text-secondary)">No listed assets</span>':''
+      }</div>`}
+    </div>`;
+  }).join('');
+}
+
+function toggleEx(id){expEx=expEx===id?null:id;renderEx();}
+
+function goCrypto(c){
+  setTab('cr');
+  document.getElementById('fsq').value=c;
+  expCr=c;
+  renderCr();
+}
+
+function renderCr(){
+  const sq=q();
+  let list=allC.filter(c=>!sq||c.toLowerCase().includes(sq)||cmap[c].some(id=>{const e=EX.find(x=>x.id===id);return e&&e.name.toLowerCase().includes(sq);}));
+  const maxN=cmap[list[0]]?.length||1;
+
+  document.getElementById('view-cr').innerHTML=`<div style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 12px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);">
+      <span style="font-size:12px;color:var(--color-text-secondary);min-width:64px;">Ticker</span>
+      <span style="font-size:12px;color:var(--color-text-secondary);flex:1;">Exchange coverage</span>
+      <span style="font-size:12px;color:var(--color-text-secondary);min-width:28px;text-align:right;">#</span>
+    </div>
+    ${list.map(c=>{
+      const n=cmap[c].length;
+      const pct=Math.round((n/27)*100);
+      const open=expCr===c;
+      const names=cmap[c].map(id=>EX.find(e=>e.id===id)?.name).filter(Boolean);
+      return `<div onclick="toggleCr('${c}')" style="border-bottom:0.5px solid var(--color-border-tertiary);">
+        <div class="cr-row ${open?'open':''}">
+          <span style="font-family:var(--font-mono);font-weight:500;font-size:13px;min-width:64px;">${c}</span>
+          <div style="flex:1;height:4px;background:var(--color-background-secondary);border-radius:2px;overflow:hidden;">
+            <div style="height:4px;background:#1D9E75;border-radius:2px;width:${pct}%;"></div>
+          </div>
+          <span style="font-size:13px;font-weight:500;min-width:28px;text-align:right;">${n}</span>
+        </div>
+        ${open?`<div class="cr-sub">${names.map(nm=>`<span class="cr-name">${nm}</span>`).join('')}</div>`:''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function toggleCr(c){expCr=expCr===c?null:c;renderCr();}
+
+function renderMx(){
+  const sortedEx=[...EX].sort((a,b)=>b.cryptos.length-a.cryptos.length);
+  document.getElementById('view-mx').innerHTML=`
+    <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 8px;">Top 30 cryptos by exchange count · sorted by listing volume</p>
+    <div class="mx-wrap">
+      <table style="border-collapse:collapse;">
+        <thead><tr>
+          <th style="min-width:120px;max-width:120px;"></th>
+          ${top30.map(c=>`<th class="mx-hdr-cell"><div class="mx-hdr-lbl">${c}</div></th>`).join('')}
+          <th style="width:32px;padding-left:6px;vertical-align:bottom;"><div style="font-size:10px;color:var(--color-text-secondary);height:60px;display:flex;align-items:flex-end;padding-bottom:3px;">total</div></th>
+        </tr></thead>
+        <tbody>${sortedEx.map(ex=>`<tr>
+          <td style="padding:2px 8px 2px 0;"><div class="mx-ex" title="${ex.name}">${ex.name}</div></td>
+          ${top30.map(c=>{const h=ex.cryptos.includes(c);return`<td style="padding:2px;text-align:center;"><div class="mx-dot ${h?'dot-on':'dot-off'}" title="${h?ex.name+' · '+c:''}"></div></td>`}).join('')}
+          <td style="padding-left:6px;text-align:right;font-size:12px;font-weight:500;color:var(--color-text-secondary);">${ex.cryptos.length}</td>
+        </tr>`).join('')}
+        <tr style="border-top:0.5px solid var(--color-border-secondary);">
+          <td style="padding:4px 8px 2px 0;font-size:11px;color:var(--color-text-secondary);">exchanges</td>
+          ${top30.map(c=>`<td style="text-align:center;font-size:10px;color:var(--color-text-secondary);font-family:var(--font-mono);padding-top:4px;">${cmap[c].length}</td>`).join('')}
+          <td></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+setTab('ex');
+renderView();
+
+// Braille dab animation
+(function(){
+  const frames=["\u2800\u2800","\u2840\u2800","\u2844\u2800","\u2846\u2800","\u2847\u2800","\u284f\u2800","\u285f\u2800","\u287f\u2800","\u28ff\u2800","\u28ff\u2840","\u28ff\u2844","\u28ff\u2846","\u28ff\u2847","\u28ff\u284f","\u28ff\u285f","\u28ff\u287f","\u28ff\u28ff","\u28bf\u28ff","\u28bb\u28ff","\u28b9\u28ff","\u28b8\u28ff","\u28b0\u28ff","\u28a0\u28ff","\u2880\u28ff","\u2800\u28ff","\u2800\u28bf","\u2800\u28bb","\u2800\u28b9","\u2800\u28b8","\u2800\u28b0","\u2800\u28a0","\u2800\u2880"];
+  const mini=document.getElementById('braille-mini');
+  let i=0;
+  setInterval(()=>{mini.textContent=frames[i];i=(i+1)%frames.length;},250);
+})();
+</script>
